@@ -1,0 +1,17 @@
+# Archivos generados al compilar con TASM/TLINK (solo en la raiz, no en tools/)
+/*.OBJ
+/*.obj
+/*.MAP
+/*.map
+/*.EXE
+/*.exe
+/*.COM
+/*.com
+
+# Capturas y mapeo de teclas que genera DOSBox
+/capture/
+/mapper-*.map
+
+# Logs que escribe DOSBox al cerrarse
+/stdout.txt
+/stderr.txt
