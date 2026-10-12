@@ -1,6 +1,6 @@
-# Space Invaders en Assembly x8086
+# Space Invaders in x8086 Assembly
 
-Un clon de **Space Invaders** escrito desde cero en **Assembly 8086** para DOS, compilado con Turbo Assembler (TASM). Todo corre en modo texto (80x25): los enemigos, la nave y el jefe final están dibujados con caracteres ASCII de bloque (`█ ▄ ▀`). Los sonidos salen del parlante interno de la PC.
+A **Space Invaders** clone written from scratch in **8086 Assembly** for DOS and built with Turbo Assembler (TASM). The whole game runs in text mode (80x25), and the enemies, the ship and the final boss are drawn with ASCII block characters (`█ ▄ ▀`). Sound comes from the PC speaker.
 
 ```
      ▄█▄█▄          ▄█▄█▄          ▄█▄█▄
@@ -18,19 +18,19 @@ Un clon de **Space Invaders** escrito desde cero en **Assembly 8086** para DOS, 
 
 ---
 
-## Cómo jugarlo
+## How to play
 
 ### Windows
 
-No hay que instalar nada. El repo ya trae DOSBox 0.74 y TASM en `tools/`.
+You don't need to install anything. The repo already includes DOSBox 0.74 and TASM in `tools/`.
 
-1. Clonar el repo, o bajarlo como ZIP desde GitHub y descomprimirlo.
-2. Hacer doble click en **`install.bat`**.
-3. Se abre DOSBox, que compila todo y arranca el juego. Entre cada paso de la compilación hay una pausa: apretar cualquier tecla para seguir.
+1. Clone the repo, or download it as a ZIP from GitHub and extract it.
+2. Double-click **`run.bat`**.
+3. DOSBox opens, builds everything and starts the game. The build pauses between steps, so press any key to continue.
 
 ### Linux / macOS
 
-Instalar DOSBox con el gestor de paquetes (`apt install dosbox`, `brew install dosbox`, etc.) y, desde la carpeta del repo, ejecutar:
+Install DOSBox with your package manager (`apt install dosbox`, `brew install dosbox`, etc.), then run this from the repo folder:
 
 ```
 dosbox -conf dosbox.conf
@@ -38,59 +38,59 @@ dosbox -conf dosbox.conf
 
 ---
 
-## Controles
+## Controls
 
-|   Tecla   | Acción                                                         |
-| :-------: | -------------------------------------------------------------- |
-|    `A`    | Mover a la izquierda                                           |
-|    `D`    | Mover a la derecha                                             |
-|    `W`    | Disparar                                                       |
-|   `Esc`   | Salir                                                          |
-| `Espacio` | Seguir jugando / reintentar (en las pantallas de fin de nivel) |
+|   Key   | Action                                         |
+| :-----: | ---------------------------------------------- |
+|   `A`   | Move left                                      |
+|   `D`   | Move right                                     |
+|   `W`   | Shoot                                          |
+|  `Esc`  | Quit                                           |
+| `Space` | Keep playing / retry (on end-of-level screens) |
 
 ---
 
-## Cómo se juega
+## Gameplay
 
-- **18 enemigos en 3 filas** avanzan de lado a lado y bajan un renglón cada vez que llegan a un borde. Si alguno te toca o llega abajo de todo, perdés.
-- **Puntaje según la fila:**
+- **18 enemies in 3 rows** sweep from side to side and drop one row each time they reach an edge. If one touches you or reaches the bottom, you lose.
+- **Points by row:**
 
-  | Enemigo                | Puntos |
+  | Enemy                  | Points |
   | ---------------------- | ------ |
-  | Fila de arriba (verde) | 30     |
-  | Fila del medio (cyan)  | 20     |
-  | Fila de abajo (roja)   | 10     |
-  | Nave secreta (magenta) | ?      |
+  | Top row (green)        | 30     |
+  | Middle row (cyan)      | 20     |
+  | Bottom row (red)       | 10     |
+  | Mystery ship (magenta) | ?      |
 
-- **Nave secreta:** cada tanto cruza la parte de arriba de la pantalla y se va. No hace falta matarla para pasar de nivel, pero da puntos extra.
-- **4 niveles**, cada uno con otra velocidad. Se guardan el score y el highscore.
-- **Jefe final:** después del cuarto nivel aparece un jefe grande (26x7 caracteres) que dispara al azar. Hay que pegarle 28 veces. En esta parte tenés 3 vidas.
+- **Mystery ship:** every now and then it flies across the top of the screen and leaves. You don't need to kill it to clear the level, but it gives bonus points.
+- **4 levels**, each at a different speed. Score and high score are tracked.
+- **Final boss:** after level 4 a big boss (26x7 characters) shows up and shoots at random. It takes 28 hits to kill. You get 3 lives in this part.
 
 ---
 
-## Cómo está hecho
+## How it works
 
-El juego usa dos **interrupciones propias** que se instalan antes de arrancar. Son programas residentes (TSR) en formato `.COM`:
+The game uses two **custom interrupts** that are installed before it starts. They are memory-resident programs (TSRs) built as `.COM` files:
 
-| Archivo        | Interrupción | Qué hace                                                                                                                                                                 |
-| -------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `intSound.asm` | `int 80h`    | Hace sonar el parlante interno programando el timer (PIT, puerto `42h`) y el puerto `61h`. Recibe el tono en `CX` y la duración en `BX`.                                 |
-| `intRand.asm`  | `int 84h`    | Devuelve en `AL` un número "aleatorio" del 0 al 9, sacado de las centésimas de segundo del reloj (`int 21h`, función `2Ch`). El jefe lo usa para decidir cuándo dispara. |
+| File           | Interrupt | What it does                                                                                                                                         |
+| -------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `intSound.asm` | `int 80h` | Plays a tone on the PC speaker by programming the timer (PIT, port `42h`) and port `61h`. Takes the tone in `CX` and the duration in `BX`.            |
+| `intRand.asm`  | `int 84h` | Returns a "random" number from 0 to 9 in `AL`, taken from the clock's hundredths of a second (`int 21h`, function `2Ch`). The boss uses it to decide when to shoot. |
 
-El juego en sí (`Game14h.asm`) usa:
+The game itself (`Game14h.asm`) uses:
 
-- **BIOS `int 10h`** en modo de video `02h` (texto 80x25) para posicionar el cursor y dibujar con colores.
-- **BIOS `int 16h`** para leer el teclado sin bloquear el juego. Además vacía las teclas repetidas del buffer para que la nave no se siga moviendo cuando soltás la tecla.
-- **DOS `int 21h`** para mostrar textos y terminar el programa.
-- **BIOS `int 15h`** (función `86h`) para las pausas que marcan la velocidad de cada nivel.
-- **Sincronización con el retrazado vertical** de la VGA (puerto `3DAh`), así la pantalla se redibuja sin parpadeos.
+- **BIOS `int 10h`** in video mode `02h` (80x25 text) to move the cursor and draw in color.
+- **BIOS `int 16h`** to read the keyboard without blocking the game. It also flushes repeated keys from the buffer, so the ship stops moving when you release the key.
+- **DOS `int 21h`** to print text and exit the program.
+- **BIOS `int 15h`** (function `86h`) for the delays that set each level's speed.
+- **VGA vertical retrace sync** (port `3DAh`), so the screen is redrawn without flicker.
 
-### Compilación
+### Building
 
-`game.bat` corre dentro de DOSBox y hace todo en orden:
+`game.bat` runs inside DOSBox and does everything in order:
 
-1. `intRand`: lo compila con `tasm /zi /m`, lo linkea como `.COM` con `tlink /t` y lo ejecuta para que quede instalada la `int 84h`.
-2. `intSound`: lo mismo, para la `int 80h`.
-3. `Game14h`: lo compila, lo linkea como `.EXE` con información de debug (`tlink /v`) y lo ejecuta.
+1. `intRand`: assembles it with `tasm /zi /m`, links it as a `.COM` with `tlink /t`, and runs it to install `int 84h`.
+2. `intSound`: same thing, for `int 80h`.
+3. `Game14h`: assembles it, links it as an `.EXE` with debug info (`tlink /v`), and runs it.
 
-Dentro de DOSBox, `TASM`, `TLINK` y `TD` (Turbo Debugger) están en el `PATH`. Para recompilar después de cambiar el código, escribir `game`. Si el teclado no anda bien, escribir `keyb sp`.
+Inside DOSBox, `TASM`, `TLINK` and `TD` (Turbo Debugger) are on the `PATH`. To rebuild after changing the code, type `game`. If the keyboard doesn't work right, type `keyb sp` for a Spanish layout, or `keyb us` for US.

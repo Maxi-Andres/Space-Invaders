@@ -1,4 +1,4 @@
-# Archivos de DOS: se guardan tal cual (CRLF), sin conversion de fin de linea
+# DOS files: keep them as-is (CRLF), no line ending conversion
 *.bat   -text
 *.asm   -text
 *.conf  -text
